@@ -12,14 +12,14 @@ export function random<T>(arr: T[], rateBy: (v: T) => number) {
 
   const totalRate = arr.reduce((total, item) => total + rateBy(item), 0)
 
-  let random = Math.random() * totalRate;
+  let rd = Math.random() * totalRate;
 
   for (const item of arr) {
-    if (random < rateBy(item)) {
+    if (rd < rateBy(item)) {
       res = item;
       break;
     }
-    random -= rateBy(item);
+    rd -= rateBy(item);
   }
 
   return res;

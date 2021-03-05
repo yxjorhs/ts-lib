@@ -1,7 +1,7 @@
 import { array } from "../src/index"
 import { assert } from 'chai';
 
-describe("Utils.Array", () => {
+describe("array", () => {
   it("random", () => {
     assert.strictEqual(array.random([1,0], v => v), 1)
     assert.strictEqual(array.random([0,1], v => v), 1)
