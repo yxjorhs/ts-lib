@@ -1,5 +1,5 @@
 import { assert } from "chai"
-import RedisHashCache from "../src/RedisHashCache"
+import { RedisHashCache } from "../src/index"
 import * as IORedis from "ioredis"
 
 describe("RedisHashCache", () => {

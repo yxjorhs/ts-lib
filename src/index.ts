@@ -5,6 +5,8 @@ import * as script from "./script";
 import * as sort from "./sort";
 import * as string from "./string"
 import * as time from "./time"
+import MemoryCache from "./MemoryCache"
+import RedisHashCache from "./RedisHashCache"
 
 export {
   array,
@@ -14,4 +16,6 @@ export {
   sort,
   string,
   time,
+  MemoryCache,
+  RedisHashCache
 };
