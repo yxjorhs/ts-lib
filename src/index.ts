@@ -9,13 +9,16 @@ import MemoryCache from "./MemoryCache"
 import RedisHashCache from "./RedisHashCache"
 
 export {
+  MemoryCache,
+  RedisHashCache
+};
+
+export default {
   array,
   encode,
   regex,
   script,
   sort,
   string,
-  time,
-  MemoryCache,
-  RedisHashCache
-};
+  time
+}

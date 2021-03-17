@@ -1,6 +1,6 @@
 import { assert } from "chai"
 import * as fs from "fs"
-import { script } from "../src/index"
+import ytl from "../src/index"
 
 describe("script", () => {
   const dir = `${__dirname}/../temp/testScriptRedDirRecursiveSync`
@@ -20,13 +20,13 @@ describe("script", () => {
   })
 
   it("readDirRecursiveSync", () => {
-    assert.deepStrictEqual(script.readDirRecursiveSync(dir), files)
+    assert.deepStrictEqual(ytl.script.readDirRecursiveSync(dir), files)
   })
 
   it("readLineSync", async () => {
     const res: Array<string> = []
 
-    await script.readLineSync(files, text => res.push(text))
+    await ytl.script.readLineSync(files, text => res.push(text))
 
     assert.deepStrictEqual(res, ["1", "2"])
   })
