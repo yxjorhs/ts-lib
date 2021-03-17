@@ -1,0 +1,10 @@
+.nyc_output
+/coverage
+/node_modules
+/temp
+/src
+/test
+.gitignore
+package-lock.json
+tsconfig.json
+tslint.json
