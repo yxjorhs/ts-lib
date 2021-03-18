@@ -43,7 +43,7 @@ export function getDate({
   date?: Date
   offset?: number
 } = {}): Date {
-  date = date || new Date()
+  date = date ? new Date(date) : new Date()
   offset = offset || 0
   date.setHours(0, 0, 0, 0);
   return new Date(date.getTime() + offset * ms.day);
@@ -61,7 +61,7 @@ export function getWeek({
   date?: Date,
   wOffset?: number
 } = {}): Date {
-  date = date || new Date()
+  date = date ? new Date(date) : new Date()
   wOffset = wOffset || 0
   date.setHours(0, 0, 0, 0);
   date.setDate(date.getDate() + (1 - (date.getDay() || 7)) + wOffset * 7)
@@ -80,7 +80,7 @@ export function getMonth({
   date?: Date,
   mOffset?: number
 } = {}): Date {
-  date = date || new Date()
+  date = date ? new Date(date) : new Date()
   mOffset = mOffset || 0
   date.setHours(0, 0, 0, 0);
   date.setDate(1);
