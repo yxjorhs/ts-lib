@@ -48,6 +48,10 @@ export default class RedisHash<T> extends RedisCommon {
    * @param fields
    */
   public async hmget(fields: string[]): Promise<(T | null)[]> {
+    if (fields.length === 0) {
+      return []
+    }
+
     const dt = await this.options.redis
       .pipeline()
       .hmget(this.options.key, ...fields.map(field => field + ""))
