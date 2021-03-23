@@ -6,11 +6,13 @@ import * as sort from "./sort";
 import * as string from "./string"
 import * as time from "./time"
 import MemoryCache from "./MemoryCache"
-import RedisHashCache from "./RedisHashCache"
+import RedisHash from "./RedisHash"
+import RedisSortedSet from "./RedisSortedSet"
 
 export {
   MemoryCache,
-  RedisHashCache
+  RedisHash,
+  RedisSortedSet
 };
 
 export default {
