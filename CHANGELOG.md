@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.14](https://github.com/yxjorhs/ts-lib/compare/v1.0.13...v1.0.14) (2021-03-23)
+
+
+### Bug Fixes
+
+* RedisHash hmget ([2f8a5d2](https://github.com/yxjorhs/ts-lib/commit/2f8a5d2cd3bfd1162d5b6d5a7cb0a98349a1113f))
+
 ### [1.0.13](https://github.com/yxjorhs/ts-lib/compare/v1.0.12...v1.0.13) (2021-03-23)
 
 ### [1.0.12](https://github.com/yxjorhs/ts-lib/compare/v1.0.11...v1.0.12) (2021-03-23)
