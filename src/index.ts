@@ -7,11 +7,13 @@ import * as string from "./string"
 import * as time from "./time"
 import MemoryCache from "./MemoryCache"
 import RedisHash from "./RedisHash"
+import RedisList from "./RedisList"
 import RedisSortedSet from "./RedisSortedSet"
 
 export {
   MemoryCache,
   RedisHash,
+  RedisList,
   RedisSortedSet
 };
 

@@ -16,8 +16,7 @@ describe("RedisSortedSet", () => {
   })
 
   it("zadd", async () => {
-    await rss.zadd([{ member: "mb1", score: 1 }])
-
+    assert.strictEqual(await rss.zadd([{ member: "mb1", score: 1 }]), 1)
     assert.strictEqual(await redis.zscore(key, "mb1"), "1")  
     assert.strictEqual( await redis.ttl(key), 86400 * 7)
   })

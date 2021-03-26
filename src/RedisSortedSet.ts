@@ -1,4 +1,3 @@
-import { Redis } from "ioredis"
 import RedisCommon from "./RedisCommon"
 
 /**
@@ -7,20 +6,12 @@ import RedisCommon from "./RedisCommon"
  * 2.缓存丢失恢复
  * 3.默认过期时间，多久没有使用则自动过期
  */
-export default class RedisSortedSet extends RedisCommon {
-  private readonly defaultExpireIn = 86400 * 7
-
-  constructor(readonly options: {
-    /** IORedis实例 */
-    redis: Redis,
-    /** 缓存key */
-    key: string,
-    /** 缓存过期时间 */
-    expireIn?: number,
+class RedisSortedSet extends RedisCommon {
+  constructor(readonly options: RedisCommon.Options & {
     /** 缓存丢失恢复 */
     refresh?: (member: string) => Promise<number>
   }) {
-    super()
+    super(options)
   }
 
   public async zadd(params: { member: string, score: number }[]): Promise<number> {
@@ -31,15 +22,7 @@ export default class RedisSortedSet extends RedisCommon {
       args.push(member)
     }
 
-    const dt = await this.options.redis
-      .pipeline()
-      .zadd(this.options.key, ...args)
-      .expire(this.options.key, this.options.expireIn || this.defaultExpireIn)
-      .exec()
-
-    const [upd_count] = this.parseExec(dt)
-
-    return Number(upd_count)
+    return this.runCommand(ppl => ppl.zadd(this.options.key, ...args))
   }
 
   public zrange(start: number, stop: number): Promise<string[]>;
@@ -56,19 +39,14 @@ export default class RedisSortedSet extends RedisCommon {
 
   private async zrangeHelper(func: "zrange" | "zrevrange", start: number, stop: number, withScores?: true) {
 
-    const ppl = this.options.redis.pipeline()
-
-    if (!withScores) {
-      ppl[func](this.options.key, start, stop)
-    } else {
-      ppl[func](this.options.key, start, stop, "WITHSCORES")
-    }
-
-    ppl.expire(this.options.key, this.options.expireIn || this.defaultExpireIn)
-
-    const exec = await ppl.exec()
-
-    const [data] = this.parseExec(exec)
+    const [data] = await this.runCommands(ppl => {
+      if (!withScores) {
+        ppl[func](this.options.key, start, stop)
+      } else {
+        ppl[func](this.options.key, start, stop, "WITHSCORES")
+      }
+      return ppl
+    })
 
     if (!withScores) {
       return data
@@ -84,13 +62,7 @@ export default class RedisSortedSet extends RedisCommon {
   }
 
   public async zincrby(member: string, incr: number): Promise<number> {
-    const exec = await this.options.redis
-      .pipeline()
-      .zincrby(this.options.key, incr, member)
-      .expire(this.options.key, this.options.expireIn || this.defaultExpireIn)
-      .exec()
-
-    const [valStr] = this.parseExec(exec)
+    const valStr = await this.runCommand(ppl => ppl.zincrby(this.options.key, incr, member))
 
     const val = Number(valStr)
 
@@ -113,17 +85,13 @@ export default class RedisSortedSet extends RedisCommon {
       return []
     }
 
-    const ppl = this.options.redis.pipeline()
+    const data = await this.runCommands(ppl => {
+      for (const member of members) {
+        ppl.zscore(this.options.key, member)
+      }
 
-    for (const member of members) {
-      ppl.zscore(this.options.key, member)
-    }
-
-    ppl.expire(this.options.key, this.options.expireIn || this.defaultExpireIn)
-
-    const exec = await ppl.exec()
-
-    const data = this.parseExec(exec)
+      return ppl
+    })
 
     const ret: number[] = []
 
@@ -154,14 +122,10 @@ export default class RedisSortedSet extends RedisCommon {
       return data
     }
 
-    const exec = await this.options.redis
-      .pipeline()
-      .zadd(this.options.key, data, member)
-      .expire(this.options.key, this.options.expireIn || this.defaultExpireIn)
-      .exec()
-
-    this.parseExec(exec)
+    await this.runCommands(ppl => ppl.zadd(this.options.key, data, member))
 
     return data
   }
 }
+
+export default RedisSortedSet

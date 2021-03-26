@@ -41,7 +41,7 @@ describe("RedisHash", () => {
     assert.strictEqual(await redis.hget(key, "f2"), "2")
   })
 
-  it("clear", async () => {
+  it("del", async () => {
     let num = 1
 
     const rh = new RedisHash({
@@ -54,7 +54,7 @@ describe("RedisHash", () => {
 
     assert.strictEqual(await rh.hget(""), 1)
 
-    await rh.clear()
+    await rh.del()
 
     // 结果为2说明更新了数据，clear成功
     assert.strictEqual(await rh.hget(""), 2)

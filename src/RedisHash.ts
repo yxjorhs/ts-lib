@@ -1,4 +1,3 @@
-import { Redis } from "ioredis"
 import RedisCommon from "./RedisCommon"
 
 /**
@@ -7,20 +6,12 @@ import RedisCommon from "./RedisCommon"
  * 2.缓存丢失恢复
  * 3.默认过期时间，多久没有使用则自动过期
  */
-export default class RedisHash<T> extends RedisCommon {
-  private readonly defaultExpireIn = 86400 * 7
-
-  constructor(private readonly options: {
-    /** IORedis实例 */
-    redis: Redis,
-    /** 缓存key */
-    key: string,
+class RedisHash<T> extends RedisCommon {
+  constructor(readonly options: RedisCommon.Options & {
     /** 缓存丢失恢复 */
     refresh?: (field: string) => Promise<T>,
-    /** 缓存过期时间 */
-    expireIn?: number
-  }) {
-    super()
+  } & RedisCommon.Options) {
+    super(options)
   }
 
   /**
@@ -28,13 +19,7 @@ export default class RedisHash<T> extends RedisCommon {
    * @param field
    */
   public async hget(field: string): Promise<T | null> {
-    const dt = await this.options.redis
-      .pipeline()
-      .hget(this.options.key, field + "")
-      .expire(this.options.key, this.options.expireIn || this.defaultExpireIn)
-      .exec()
-
-    const [cache] = this.parseExec(dt)
+    const [cache] = await this.runCommands(ppl => ppl.hget(this.options.key, field + ""))
 
     if (cache) {
       return JSON.parse(cache)
@@ -52,13 +37,7 @@ export default class RedisHash<T> extends RedisCommon {
       return []
     }
 
-    const dt = await this.options.redis
-      .pipeline()
-      .hmget(this.options.key, ...fields.map(field => field + ""))
-      .expire(this.options.key, this.options.expireIn || this.defaultExpireIn)
-      .exec()
-
-    const [cache] = this.parseExec(dt)
+    const [cache] = await this.runCommands(ppl => ppl.hmget(this.options.key, ...fields.map((field => field + ""))))
 
     const ret: (T | null)[] = []
 
@@ -82,17 +61,12 @@ export default class RedisHash<T> extends RedisCommon {
       return []
     }
 
-    const ppl = this.options.redis.pipeline()
-
-    for (const { field, incr } of params) {
-      ppl.hincrby(this.options.key, field + "", incr)
-    }
-
-    ppl.expire(this.options.key, this.options.expireIn || this.defaultExpireIn)
-
-    const exec = await ppl.exec()
-
-    const incrRes = this.parseExec(exec)
+    const incrRes = await this.runCommands(ppl => {
+      for (const { field, incr } of params) {
+        ppl.hincrby(this.options.key, field + "", incr)
+      }
+      return ppl
+    })
 
     const ret: { field: string, val: number }[] = []
 
@@ -112,17 +86,10 @@ export default class RedisHash<T> extends RedisCommon {
   }
 
   /**
-   * 删除指定缓存
+   * 删除指定field
    */
   public async hdel(...fields: string[]) {
     await this.options.redis.hdel(this.options.key, ...fields.map(v => v + ""))
-  }
-
-  /**
-   * 清空所有缓存
-   */
-  public async clear() {
-    await this.options.redis.del(this.options.key)
   }
 
   /**
@@ -135,14 +102,10 @@ export default class RedisHash<T> extends RedisCommon {
 
     const data = await this.options.refresh(field)
 
-    const dt = await this.options.redis
-      .pipeline()
-      .hset(this.options.key, field + "", JSON.stringify(data))
-      .expire(this.options.key, this.options.expireIn || this.defaultExpireIn)
-      .exec()
-
-    this.parseExec(dt)
+    await this.runCommands(ppl => ppl.hset(this.options.key, field + "", JSON.stringify(data)))
 
     return data
   }
 }
+
+export default RedisHash

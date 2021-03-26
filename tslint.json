@@ -11,7 +11,8 @@
       "object-literal-sort-keys": false,
       "semicolon": false,
       "trailing-comma": false,
-      "variable-name": ["allow-snake-case"]
+      "variable-name": ["allow-snake-case"],
+      "no-namespace": false
     },
     "rulesDirectory": []
 }
