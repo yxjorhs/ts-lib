@@ -49,6 +49,20 @@ describe("RedisSortedSet", () => {
     assert.deepStrictEqual(await rss.zrevrange(0, -1, true), [{ member: "mb2", score: 2 }, { member: "mb1", score: 1 }])
   })
 
+  it("zrank", async () => {
+    await redis.zadd(key, 1, "mb1", 2, "mb2")
+
+    assert.strictEqual(await rss.zrank("mb1"), 0)
+    assert.strictEqual(await rss.zrank("mb2"), 1)
+  })
+
+  it("zrevrank", async () => {
+    await redis.zadd(key, 1, "mb1", 2, "mb2")
+
+    assert.strictEqual(await rss.zrevrank("mb1"), 1)
+    assert.strictEqual(await rss.zrevrank("mb2"), 0)
+  })
+
   it("没有配置refresh函数", async () => {
     const rssNoRefresh = new RedisSortedSet({
       redis,

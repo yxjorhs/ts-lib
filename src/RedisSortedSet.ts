@@ -102,6 +102,14 @@ class RedisSortedSet extends RedisCommon {
     return ret
   }
 
+  public async zrank(member: string): Promise<number | null> {
+    return this.runCommand(ppl => ppl.zrank(this.options.key, member))
+  }
+
+  public async zrevrank(member: string): Promise<number | null> {
+    return this.runCommand(ppl => ppl.zrevrank(this.options.key, member))
+  }
+
   /**
    * 刷新缓存数据
    *
