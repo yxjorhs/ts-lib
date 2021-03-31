@@ -88,8 +88,12 @@ class RedisHash<T> extends RedisCommon {
   /**
    * 删除指定field
    */
-  public async hdel(...fields: string[]) {
-    await this.options.redis.hdel(this.options.key, ...fields.map(v => v + ""))
+  public async hdel(field: string, ...fields: string[]) {
+    await this.options.redis.hdel(this.options.key, field, ...fields.map(v => v + ""))
+  }
+
+  public async hset(field: string, v: string | number, ...args: (string | number)[]) {
+    await this.runCommand(ppl => ppl.hset(this.options.key, field, v, ...args))
   }
 
   /**

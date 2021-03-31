@@ -60,6 +60,11 @@ describe("RedisHash", () => {
     assert.strictEqual(await rh.hget(""), 2)
   })
 
+  it("hset", async () => {
+    await rh.hset("f1", 1)
+    assert.strictEqual(await redis.hget(key, "f1"), "1")
+  })
+
   it("无refresh", async () => {
     const rh = new RedisHash({
       redis,
