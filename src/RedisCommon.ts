@@ -13,7 +13,7 @@ declare namespace RedisCommon {
 class RedisCommon {
   protected readonly defaultExpireIn = 86400 * 7
 
-  constructor(protected readonly options: RedisCommon.Options) {}
+  constructor(public readonly options: RedisCommon.Options) {}
 
   protected parseExec(data: [Error | null, any][]): any[] {
     const ret: any[] = []
