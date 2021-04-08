@@ -1,11 +1,11 @@
 import RedisCommon from "./RedisCommon";
 
-/**
- * redis list 扩展
- * 1.默认过期时间
- * 2.长度限制
- */
 class RedisList extends RedisCommon {
+  /**
+   * redis list 扩展
+   * 1.默认过期时间
+   * 2.长度限制
+   */
   constructor(readonly options: RedisCommon.Options & {
     /** list的最大长度 */
     maxLen?: number

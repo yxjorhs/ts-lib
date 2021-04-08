@@ -1,10 +1,10 @@
 import * as Redlock from "redlock"
 import RedisCommon from "./RedisCommon";
 
-/**
- * 支持按多个score排序的Redis有序集合
- */
 class RedisSortedSetMultiScore extends RedisCommon {
+  /**
+   * 支持按多个score排序的Redis有序集合
+   */
   constructor(readonly options: RedisCommon.Options & {
     // 数组长度表示可存放多少个score，数组中的值表示每个score的最大长度
     scoresLen: number[]

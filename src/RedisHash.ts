@@ -1,12 +1,12 @@
 import RedisCommon from "./RedisCommon"
 
-/**
- * 在redis的hash上附加功能
- * 1.key管理
- * 2.缓存丢失恢复
- * 3.默认过期时间，多久没有使用则自动过期
- */
 class RedisHash<T> extends RedisCommon {
+  /**
+   * 在redis的hash上附加功能
+   * 1.key管理
+   * 2.缓存丢失恢复
+   * 3.默认过期时间，多久没有使用则自动过期
+   */
   constructor(readonly options: RedisCommon.Options & {
     /** 缓存丢失恢复 */
     refresh?: (field: string) => Promise<T>,
