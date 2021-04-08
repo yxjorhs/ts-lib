@@ -9,12 +9,14 @@ import MemoryCache from "./MemoryCache"
 import RedisHash from "./RedisHash"
 import RedisList from "./RedisList"
 import RedisSortedSet from "./RedisSortedSet"
+import RedisSortedSetMultiScore from "./RedisSortedSetMultiScore"
 
 export {
   MemoryCache,
   RedisHash,
   RedisList,
-  RedisSortedSet
+  RedisSortedSet,
+  RedisSortedSetMultiScore
 };
 
 export default {
