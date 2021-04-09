@@ -10,6 +10,19 @@ class RedisSortedSetMultiScore extends RedisCommon {
     scoresLen: number[]
   }) {
     super(options)
+
+    if (this.isScoresLenValid() === false) {
+      throw new Error(`scoresLen最多累计15位`)
+    }
+  }
+
+  /**
+   * scoresLen是否有效
+   * @param scoresLen
+   */
+  private isScoresLenValid(): boolean {
+    // 有序集合的score有效数字大概17位（双精度浮点数）, 因此需要保证保存score最大为16位，由于被占了1位(toScore)，因此只允许外部传入最多15位
+    return this.options.scoresLen.reduce((a, b) => a + b, 0) <= 15
   }
 
   /**

@@ -92,4 +92,32 @@ describe("RedisSortedSetMultiScore", () => {
       ]
     )
   })
+
+  it("scoresLen验证", () => {
+    function checkMsg(msg: string) {
+      assert.strictEqual(msg, "scoresLen最多累计15位")
+    }
+
+    try {
+      new RedisSortedSetMultiScore({
+        redis,
+        key,
+        scoresLen: [1,15]
+      })
+      throw new Error("居然成功了?")
+    } catch (e) {
+      checkMsg(e.message)
+    }
+
+    try {
+      new RedisSortedSetMultiScore({
+        redis,
+        key,
+        scoresLen: [1,2,3,4,5,6]
+      })
+      throw new Error("居然成功了?")
+    } catch (e) {
+      checkMsg(e.message)
+    }
+  })
 })
