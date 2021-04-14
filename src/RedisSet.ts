@@ -8,6 +8,10 @@ class RedisSet extends RedisCommon {
   public async scard(): Promise<number> {
     return this.runCommand(ppl => ppl.scard(this.options.key))
   }
+
+  public async smembers(): Promise<string[]> {
+    return this.runCommand(ppl => ppl.smembers(this.options.key))
+  }
 }
 
 export default RedisSet

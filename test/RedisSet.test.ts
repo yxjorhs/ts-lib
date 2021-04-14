@@ -34,4 +34,13 @@ describe("RedisSet", () => {
       1
     )
   })
+
+  it("smembers", async () => {
+    await redis.sadd(rs.options.key, "a")
+
+    assert.deepStrictEqual(
+      await rs.smembers(),
+      ["a"]
+    )
+  })
 })
