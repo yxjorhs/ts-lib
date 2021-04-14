@@ -8,6 +8,7 @@ import * as time from "./time"
 import MemoryCache from "./MemoryCache"
 import RedisHash from "./RedisHash"
 import RedisList from "./RedisList"
+import RedisSet from "./RedisSet"
 import RedisSortedSet from "./RedisSortedSet"
 import RedisSortedSetMultiScore from "./RedisSortedSetMultiScore"
 
@@ -15,6 +16,7 @@ export {
   MemoryCache,
   RedisHash,
   RedisList,
+  RedisSet,
   RedisSortedSet,
   RedisSortedSetMultiScore
 };
