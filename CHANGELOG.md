@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.1](https://github.com/yxjorhs/ts-lib/compare/v1.3.2...v1.4.1) (2021-04-22)
+
 ### [1.3.2](https://github.com/yxjorhs/ts-lib/compare/v1.3.1...v1.3.2) (2021-04-14)
 
 ### [1.3.1](https://github.com/yxjorhs/ts-lib/compare/v1.2.3...v1.3.1) (2021-04-14)
