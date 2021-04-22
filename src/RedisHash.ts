@@ -69,9 +69,7 @@ class RedisHash<T> extends RedisHashCom {
     for (let i = 0; i < params.length; i++) {
       const { field } = params[i]
 
-      let val = incrRes[i]
-
-      ret.push({ field, val })
+      ret.push({ field, val: incrRes[i] })
     }
 
     return ret
