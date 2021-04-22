@@ -1,13 +1,17 @@
 import RedisCommon from "./RedisCommon"
 import { RedisHashCom } from "./RedisHashCom"
 
-class RedisHash<T> extends RedisHashCom {
+class RedisHashAutRef<T> extends RedisHashCom {
   /**
    * 在redis的hash上附加功能
    * 1.key管理
    * 2.默认过期时间，多久没有使用则自动过期
+   * 3.缓存丢失恢复
    */
-  constructor(readonly options: RedisCommon.Options) {
+  constructor(readonly options: RedisCommon.Options & {
+    /** 缓存丢失恢复 */
+    refresh: (field: string) => Promise<T>,
+  }) {
     super(options)
   }
 
@@ -15,30 +19,31 @@ class RedisHash<T> extends RedisHashCom {
    * 获取缓存，延长缓存过期时间，缓存不存在时可更新缓存并返回
    * @param field
    */
-  public async hget(field: string): Promise<T | null> {
+  public async hget(field: string): Promise<T> {
     const [cache] = await this.runCommands(ppl => ppl.hget(this.options.key, field + ""))
 
     if (cache) {
       return JSON.parse(cache)
     }
 
-    return null
+    return this.refresh(field)
   }
 
   /**
    * 批量获取缓存
    * @param fields
    */
-  public async hmget(fields: string[]): Promise<(T | null)[]> {
+  public async hmget(fields: string[]): Promise<T[]> {
     if (fields.length === 0) {
       return []
     }
 
     const [cache] = await this.runCommands(ppl => ppl.hmget(this.options.key, ...fields.map((field => field + ""))))
 
-    const ret: (T | null)[] = []
+    const ret: T[] = []
 
     for (let i = 0; i < fields.length; i++) {
+      const field = fields[i]
       const str = cache[i]
 
       if (str) {
@@ -46,7 +51,7 @@ class RedisHash<T> extends RedisHashCom {
         continue
       }
 
-      ret.push(null)
+      ret.push(await this.refresh(field))
     }
 
     return ret
@@ -67,9 +72,13 @@ class RedisHash<T> extends RedisHashCom {
     const ret: { field: string, val: number }[] = []
 
     for (let i = 0; i < params.length; i++) {
-      const { field } = params[i]
+      const { field, incr } = params[i]
 
       let val = incrRes[i]
+
+      if (val === incr) {
+        val = await this.refresh(field)
+      }
 
       ret.push({ field, val })
     }
@@ -78,15 +87,15 @@ class RedisHash<T> extends RedisHashCom {
   }
 
   /**
-   * 删除指定field
+   * 更新指定缓存
    */
-  public async hdel(field: string, ...fields: string[]) {
-    await this.options.redis.hdel(this.options.key, field, ...fields.map(v => v + ""))
-  }
+  private async refresh(field: string) {
+    const data = await this.options.refresh(field)
 
-  public async hset(field: string, v: string | number, ...args: (string | number)[]) {
-    await this.runCommand(ppl => ppl.hset(this.options.key, field, v, ...args))
+    await this.runCommands(ppl => ppl.hset(this.options.key, field + "", JSON.stringify(data)))
+
+    return data
   }
 }
 
-export default RedisHash
+export default RedisHashAutRef

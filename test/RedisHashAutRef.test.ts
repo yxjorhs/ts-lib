@@ -1,13 +1,14 @@
 import { assert } from "chai"
-import { RedisHash } from "../src/index"
+import { RedisHashAutRef } from "../src/index"
 import * as IORedis from "ioredis"
 
 describe("RedisHash", () => {
   const redis = new IORedis()
   const key = "test"
-  const rh = new RedisHash({
+  const rh = new RedisHashAutRef({
     redis,
     key,
+    refresh: async (field: string) => Number(field)
   })
 
   beforeEach(async () => {
@@ -16,13 +17,13 @@ describe("RedisHash", () => {
 
   it("hget", async () => {
     await redis.hset(key, "2", "2")
-    assert.strictEqual(await rh.hget("1"), null)
+    assert.strictEqual(await rh.hget("1"), 1)
     assert.strictEqual(await rh.hget("2"), 2)
   })
 
   it("hmget", async () => {
     await redis.hset(key, "1", "1")
-    assert.deepStrictEqual(await rh.hmget(["1","2"]), [1, null])
+    assert.deepStrictEqual(await rh.hmget(["1","2"]), [1,2])
     assert.deepStrictEqual(await rh.hmget([]), [])
   })
 
@@ -40,8 +41,22 @@ describe("RedisHash", () => {
     assert.strictEqual(await redis.hget(key, "f2"), "2")
   })
 
-  it("hset", async () => {
-    await rh.hset("f1", 1)
-    assert.strictEqual(await redis.hget(key, "f1"), "1")
+  it("del", async () => {
+    let num = 1
+
+    const rh = new RedisHashAutRef({
+      redis,
+      key,
+      refresh: async () => {
+        return num++
+      }
+    })
+
+    assert.strictEqual(await rh.hget(""), 1)
+
+    await rh.del()
+
+    // 结果为2说明更新了数据，clear成功
+    assert.strictEqual(await rh.hget(""), 2)
   })
 })
