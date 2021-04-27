@@ -15,7 +15,7 @@ class RedisHashAutRefMulType<T extends Record<string, unknown>> extends RedisHas
   }
 
   public async hget<K extends keyof T>(field: K): Promise<T[K]> {
-    const [cache] = await this.runCommands(ppl => ppl.hget(this.options.key, field + ""))
+    const cache = await this._hget(field as string)
 
     if (cache) {
       return JSON.parse(cache)
@@ -24,25 +24,39 @@ class RedisHashAutRefMulType<T extends Record<string, unknown>> extends RedisHas
     return this.refresh(field)
   }
 
+  /** 获得所有field的值 */
+  public async hgetall(): Promise<{[key in keyof T]: T[key]}> {
+    const ret: any = await this._hgetall()
+
+    for (const key in this.options.refresh) {
+      if (ret[key] !== undefined) {
+        ret[key] = JSON.parse(ret[key])
+        continue
+      }
+
+      ret[key] = await this.refresh(key)
+    }
+
+    return ret
+  }
+
+  public async hmget<K extends keyof T>(field: K, ...fields: K[]): Promise<Record<K, T[K]>>;
   public async hmget<K extends keyof T>(...fields: K[]): Promise<Record<K, T[K]>> {
     if (fields.length === 0) {
       return {} as any
     }
 
-    const [cache] = await this.runCommands(ppl => ppl.hmget(this.options.key, ...fields.map((field => field + ""))))
+    const cache = await this._hmget(...fields as string[])
 
-    const ret: Record<K, T[K]> = {} as any
+    const ret: any = {}
 
     for (let i = 0; i < fields.length; i++) {
-      const field = fields[i]
-      const str = cache[i]
-
-      if (str) {
-        ret[field] = JSON.parse(str)
+      if (cache[i] !== null) {
+        ret[fields[i]] = JSON.parse(cache[i]!)
         continue
       }
 
-      ret[field] = await this.refresh(field)
+      ret[fields[i]] = await this.refresh(fields[i])
     }
 
     return ret
