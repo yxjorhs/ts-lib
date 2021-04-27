@@ -15,12 +15,8 @@ class RedisHashAutRef<T> extends RedisHashCom {
     super(options)
   }
 
-  /**
-   * 获取缓存，延长缓存过期时间，缓存不存在时可更新缓存并返回
-   * @param field
-   */
   public async hget(field: string): Promise<T> {
-    const [cache] = await this.runCommands(ppl => ppl.hget(this.options.key, field + ""))
+    const cache = await this._hget(field)
 
     if (cache) {
       return JSON.parse(cache)
@@ -29,16 +25,27 @@ class RedisHashAutRef<T> extends RedisHashCom {
     return this.refresh(field)
   }
 
-  /**
-   * 批量获取缓存
-   * @param fields
-   */
-  public async hmget(fields: string[]): Promise<T[]> {
+  public async hdel(field: string, ...fields: string[]): Promise<number> {
+    return this._hdel(field, ...fields)
+  }
+
+  public async hgetall(): Promise<Record<string, T>> {
+    const _data = await this._hgetall()
+
+    const ret: Record<string, T> = {}
+
+    for (const key in _data) ret[key] = JSON.parse(_data[key]);
+
+    return ret
+  }
+
+  public async hmget(field: string, ...fields: string[]): Promise<T[]>;
+  public async hmget(...fields: string[]): Promise<T[]> {
     if (fields.length === 0) {
       return []
     }
 
-    const [cache] = await this.runCommands(ppl => ppl.hmget(this.options.key, ...fields.map((field => field + ""))))
+    const cache = await this._hmget(...fields)
 
     const ret: T[] = []
 

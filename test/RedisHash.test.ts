@@ -17,13 +17,17 @@ describe("RedisHash", () => {
   it("hget", async () => {
     await redis.hset(key, "2", "2")
     assert.strictEqual(await rh.hget("1"), null)
-    assert.strictEqual(await rh.hget("2"), 2)
+    assert.strictEqual(await rh.hget("2"), "2")
+  })
+
+  it("hgetall", async () => {
+    await redis.hset(key, "1", "1")
+    assert.deepStrictEqual(await rh.hgetall(), { "1": "1" })
   })
 
   it("hmget", async () => {
     await redis.hset(key, "1", "1")
-    assert.deepStrictEqual(await rh.hmget(["1","2"]), [1, null])
-    assert.deepStrictEqual(await rh.hmget([]), [])
+    assert.deepStrictEqual(await rh.hmget("1", "2"), ["1", null])
   })
 
   it("hmincrby", async () => {
@@ -41,7 +45,7 @@ describe("RedisHash", () => {
   })
 
   it("hset", async () => {
-    await rh.hset("f1", 1)
+    await rh.hset("f1", "1")
     assert.strictEqual(await redis.hget(key, "f1"), "1")
   })
 })

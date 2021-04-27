@@ -26,4 +26,8 @@ describe("RedisHashAutRedMulType", () => {
   it("hmget", async () => {
     assert.deepStrictEqual(await rh.hmget("a", "b"), { a: "a", b: 1 })
   })
+
+  it("hgetall", async () => {
+    assert.deepStrictEqual(await rh.hgetall(), { a: "a", b: 1 })
+  })
 })

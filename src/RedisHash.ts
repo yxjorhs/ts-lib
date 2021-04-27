@@ -1,7 +1,7 @@
 import RedisCommon from "./RedisCommon"
 import { RedisHashCom } from "./RedisHashCom"
 
-class RedisHash<T> extends RedisHashCom {
+class RedisHash extends RedisHashCom {
   /**
    * 在redis的hash上附加功能
    * 1.key管理
@@ -15,41 +15,28 @@ class RedisHash<T> extends RedisHashCom {
    * 获取缓存，延长缓存过期时间，缓存不存在时可更新缓存并返回
    * @param field
    */
-  public async hget(field: string): Promise<T | null> {
-    const [cache] = await this.runCommands(ppl => ppl.hget(this.options.key, field + ""))
+  public async hget(field: string): Promise<string | null> {
+    return this._hget(field)
+  }
 
-    if (cache) {
-      return JSON.parse(cache)
-    }
+  public async hgetall(): Promise<Record<string, string>> {
+    return this._hgetall()
+  }
 
-    return null
+  public async hset(field: string, val: string, ...args: string[]) {
+    return this._hset(field, val, ...args)
+  }
+
+  public async hdel(field: string, ...fields: string[]) {
+    return this._hdel(field, ...fields)
   }
 
   /**
    * 批量获取缓存
    * @param fields
    */
-  public async hmget(fields: string[]): Promise<(T | null)[]> {
-    if (fields.length === 0) {
-      return []
-    }
-
-    const [cache] = await this.runCommands(ppl => ppl.hmget(this.options.key, ...fields.map((field => field + ""))))
-
-    const ret: (T | null)[] = []
-
-    for (let i = 0; i < fields.length; i++) {
-      const str = cache[i]
-
-      if (str) {
-        ret.push(JSON.parse(str))
-        continue
-      }
-
-      ret.push(null)
-    }
-
-    return ret
+  public async hmget(field: string, ...fields: string[]): Promise<(string | null)[]> {
+    return this._hmget(field, ...fields)
   }
 
   public async hmincrby(params: { field: string, incr: number }[]) {
@@ -73,17 +60,6 @@ class RedisHash<T> extends RedisHashCom {
     }
 
     return ret
-  }
-
-  /**
-   * 删除指定field
-   */
-  public async hdel(field: string, ...fields: string[]) {
-    await this.options.redis.hdel(this.options.key, field, ...fields.map(v => v + ""))
-  }
-
-  public async hset(field: string, v: string | number, ...args: (string | number)[]) {
-    await this.runCommand(ppl => ppl.hset(this.options.key, field, v, ...args))
   }
 }
 
