@@ -28,7 +28,7 @@ class RedisHashAutRefMulType<T extends Record<string, unknown>> extends RedisHas
   public async hgetall(): Promise<{[key in keyof T]: T[key]}> {
     const ret: any = await this._hgetall()
 
-    for (const key in this.options.refresh) {
+    for (const key of Object.keys(this.options.refresh)) {
       if (ret[key] !== undefined) {
         ret[key] = JSON.parse(ret[key])
         continue

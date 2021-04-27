@@ -33,7 +33,7 @@ class RedisHashAutRef<T> extends RedisHashCom {
     const _data = await this._hgetall()
 
     const ret: Record<string, T> = {}
-    
+
     for (const key in _data) ret[key] = JSON.parse(_data[key]);
 
     return ret
