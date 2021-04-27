@@ -35,8 +35,8 @@ class RedisHash extends RedisHashCom {
    * 批量获取缓存
    * @param fields
    */
-  public async hmget(field: string, ...fields: string[]): Promise<(string | null)[]> {
-    return this._hmget(field, ...fields)
+  public async hmget(...fields: string[]): Promise<(string | null)[]> {
+    return this._hmget(...fields)
   }
 
   public async hmincrby(params: { field: string, incr: number }[]) {

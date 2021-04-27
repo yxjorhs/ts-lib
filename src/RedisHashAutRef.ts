@@ -39,7 +39,6 @@ class RedisHashAutRef<T> extends RedisHashCom {
     return ret
   }
 
-  public async hmget(field: string, ...fields: string[]): Promise<T[]>;
   public async hmget(...fields: string[]): Promise<T[]> {
     if (fields.length === 0) {
       return []
