@@ -31,10 +31,20 @@ describe("RedisHash", () => {
     assert.deepStrictEqual(await rh.hmget("1", "2"), [1,2])
   })
 
+  it("hmget", async () => {
+    await rh.hmincrby([{ field: "0", incr : 1}])
+    assert.strictEqual(await redis.hget(key, "0"), "1")
+  })
+
   it("hmincrby", async () => {
     assert.deepStrictEqual(await rh.hmincrby([]), [])
+
+    await rh.hmincrby([{ field: "0", incr : 1}])
+    assert.strictEqual(await redis.hget(key, "0"), "1")
+
     assert.deepStrictEqual(await rh.hmincrby([{ field: "1", incr: 1 }]), [{ field: "1", val: 1 }])
     assert.deepStrictEqual(await rh.hmincrby([{ field: "1", incr: 1 }]), [{ field: "1", val: 2 }])
+    assert.strictEqual(await redis.hget(key, "1"), "2")
   })
 
   it("del", async () => {
