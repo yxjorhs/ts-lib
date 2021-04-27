@@ -40,7 +40,6 @@ class RedisHashAutRefMulType<T extends Record<string, unknown>> extends RedisHas
     return ret
   }
 
-  public async hmget<K extends keyof T>(field: K, ...fields: K[]): Promise<Record<K, T[K]>>;
   public async hmget<K extends keyof T>(...fields: K[]): Promise<Record<K, T[K]>> {
     if (fields.length === 0) {
       return {} as any
