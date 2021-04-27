@@ -1,6 +1,6 @@
 {
   "name": "yxjorhs-ts-lib",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "ts库",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
