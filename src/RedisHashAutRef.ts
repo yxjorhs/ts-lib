@@ -70,24 +70,14 @@ class RedisHashAutRef<T> extends RedisHashCom {
 
     const incrRes = await this.runCommands(ppl => {
       for (const { field, incr } of params) {
-        ppl.hincrby(this.options.key, field + "", incr)
+        ppl.hincrby(this.options.key, field, incr)
       }
       return ppl
     })
 
     const ret: { field: string, val: number }[] = []
 
-    for (let i = 0; i < params.length; i++) {
-      const { field, incr } = params[i]
-
-      let val = incrRes[i]
-
-      if (val === incr) {
-        val = await this.refresh(field)
-      }
-
-      ret.push({ field, val })
-    }
+    for (let i = 0; i < params.length; i++) ret.push({ field: params[i].field, val: incrRes[i] })
 
     return ret
   }
