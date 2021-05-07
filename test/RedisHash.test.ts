@@ -8,6 +8,7 @@ describe("RedisHash", () => {
   const rh = new RedisHash({
     redis,
     key,
+    expire: ["inWrite", 86400]
   })
 
   beforeEach(async () => {

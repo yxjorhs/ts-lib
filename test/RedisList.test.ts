@@ -8,7 +8,8 @@ describe("RedisList", () => {
   
   const rl = new RedisList({
     redis,
-    key
+    key,
+    expire: ["inRead", 86400]
   })
 
   beforeEach(async () => {
@@ -24,7 +25,8 @@ describe("RedisList", () => {
     const rl2 = new RedisList({
       redis,
       key,
-      maxLen: 1
+      maxLen: 1,
+      expire: ["inRead", 86400]
     })
     assert.strictEqual(await rl2.lpush("1"), 1)
     assert.strictEqual(await rl2.lpush("2"), 2)

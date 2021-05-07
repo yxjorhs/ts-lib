@@ -8,6 +8,7 @@ describe("RedisSet", () => {
   const rs = new RedisSet({
     redis,
     key,
+    expire: ["inRead", 86400]
   })
 
   beforeEach(async () => {

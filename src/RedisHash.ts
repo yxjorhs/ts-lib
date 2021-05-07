@@ -1,34 +1,43 @@
-import RedisCommon from "./RedisCommon"
-import { RedisHashCom } from "./RedisHashCom"
+import * as assert from "assert"
+import RedisDataBase from "./RedisDataBase"
 
-class RedisHash extends RedisHashCom {
-  /**
-   * 在redis的hash上附加功能
-   * 1.key管理
-   * 2.默认过期时间，多久没有使用则自动过期
-   */
-  constructor(readonly options: RedisCommon.Options) {
-    super(options)
-  }
-
+class RedisHash extends RedisDataBase {
   /**
    * 获取缓存，延长缓存过期时间，缓存不存在时可更新缓存并返回
    * @param field
    */
   public async hget(field: string): Promise<string | null> {
-    return this._hget(field)
+    const v = await this.options.redis.hget(this.options.key, field)
+
+    await this._updExp("read")
+
+    return v
   }
 
   public async hgetall(): Promise<Record<string, string>> {
-    return this._hgetall()
+    const v = await this.options.redis.hgetall(this.options.key)
+
+    await this._updExp("read")
+
+    return v
   }
 
   public async hset(field: string, val: string, ...args: string[]) {
-    return this._hset(field, val, ...args)
+    const v = await this.options.redis.hset(this.options.key, field, val, ...args)
+
+    await this._updExp("write")
+    
+    return v
   }
 
-  public async hdel(field: string, ...fields: string[]) {
-    return this._hdel(field, ...fields)
+  public async hdel(...fields: string[]) {
+    assert(fields.length > 0, "缺少field")
+
+    const v = await this.options.redis.hdel(this.options.key, ...fields.map(v => v + ""))
+
+    await this._updExp("read")
+
+    return v
   }
 
   /**
@@ -36,7 +45,15 @@ class RedisHash extends RedisHashCom {
    * @param fields
    */
   public async hmget(...fields: string[]): Promise<(string | null)[]> {
-    return this._hmget(...fields)
+    if (fields.length === 0) {
+      return []
+    }
+
+    const v = await this.options.redis.hmget(this.options.key, ...fields);
+
+    await this._updExp("read")
+    
+    return v
   }
 
   public async hmincrby(params: { field: string, incr: number }[]) {
@@ -44,12 +61,13 @@ class RedisHash extends RedisHashCom {
       return []
     }
 
-    const incrRes = await this.runCommands(ppl => {
-      for (const { field, incr } of params) {
-        ppl.hincrby(this.options.key, field + "", incr)
-      }
-      return ppl
-    })
+    const ppl = this.options.redis.pipeline()
+
+    for (const { field, incr } of params) {
+      ppl.hincrby(this.options.key, field + "", incr)
+    }
+
+    const incrRes = await this._exec(ppl)
 
     const ret: { field: string, val: number }[] = []
 

@@ -8,7 +8,8 @@ describe("RedisSortedSetMultiScore", () => {
   const cache = new RedisSortedSetMultiScore({
     redis,
     key,
-    scoresLen: [1,2,3]
+    scoresLen: [1,2,3],
+    expire: ["never", -1]
   })
 
   beforeEach(async () => {
@@ -102,7 +103,8 @@ describe("RedisSortedSetMultiScore", () => {
       new RedisSortedSetMultiScore({
         redis,
         key,
-        scoresLen: [1,15]
+        scoresLen: [1,15],
+        expire: ["never", -1]
       })
       throw new Error("居然成功了?")
     } catch (e) {
@@ -113,7 +115,8 @@ describe("RedisSortedSetMultiScore", () => {
       new RedisSortedSetMultiScore({
         redis,
         key,
-        scoresLen: [1,2,3,4,5,6]
+        scoresLen: [1,2,3,4,5,6],
+        expire: ["never", -1]
       })
       throw new Error("居然成功了?")
     } catch (e) {

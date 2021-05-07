@@ -1,11 +1,11 @@
 import * as Redlock from "redlock"
-import RedisCommon from "./RedisCommon";
+import RedisDataBase from "./RedisDataBase"
 
-class RedisSortedSetMultiScore extends RedisCommon {
+class RedisSortedSetMultiScore extends RedisDataBase {
   /**
    * 支持按多个score排序的Redis有序集合
    */
-  constructor(readonly options: RedisCommon.Options & {
+  constructor(readonly options: RedisDataBase.Options & {
     // 数组长度表示可存放多少个score，数组中的值表示每个score的最大长度
     scoresLen: number[]
   }) {
@@ -51,9 +51,9 @@ class RedisSortedSetMultiScore extends RedisCommon {
 
     const newScore = this.toScore(newScores)
 
-    await this.runCommand(ppl => {
-      return ppl.zadd(this.options.key, newScore, member)
-    })
+    await this.options.redis.zadd(this.options.key, newScore, member)
+
+    await this._updExp("read")
 
     await lock.unlock()
   }
@@ -63,7 +63,11 @@ class RedisSortedSetMultiScore extends RedisCommon {
    * @param member
    */
   public async score(member: string): Promise<number[]> {
-    return this.parseScore(await this.runCommand(ppl => ppl.zscore(this.options.key, member)))
+    const v = this.parseScore(await this.options.redis.zscore(this.options.key, member))
+
+    await this._updExp("read")
+    
+    return v
   }
 
   /**
@@ -71,7 +75,11 @@ class RedisSortedSetMultiScore extends RedisCommon {
    * @param member
    */
   public async rank(member: string): Promise<number | null> {
-    return this.runCommand(ppl => ppl.zrank(this.options.key, member))
+    const v = await this.options.redis.zrank(this.options.key, member)
+    
+    await this._updExp("read")
+    
+    return v
   }
 
   /**
@@ -79,7 +87,11 @@ class RedisSortedSetMultiScore extends RedisCommon {
    * @param member
    */
   public async revrank(member: string): Promise<number | null> {
-    return this.runCommand(ppl => ppl.zrevrank(this.options.key, member))
+    const v = await this.options.redis.zrevrank(this.options.key, member)
+
+    await this._updExp("read")
+
+    return v
   }
 
   /**
@@ -88,14 +100,22 @@ class RedisSortedSetMultiScore extends RedisCommon {
    * @param stop
    */
   public async range(start: number, stop: number): Promise<{ member: string, scores: number[] }[]> {
-    return this.parseRangeData(await this.runCommand(ppl => ppl.zrange(this.options.key, start, stop, "WITHSCORES")))
+    const v = this.parseRangeData(await this.options.redis.zrange(this.options.key, start, stop, "WITHSCORES"))
+
+    await this._updExp("read")
+
+    return v
   }
 
   /**
    * 按score递减列出
    */
   public async revrange(start: number, stop: number): Promise<{ member: string, scores: number[] }[]> {
-    return this.parseRangeData(await this.runCommand(ppl => ppl.zrevrange(this.options.key, start, stop, "WITHSCORES")))
+    const v = this.parseRangeData(await this.options.redis.zrevrange(this.options.key, start, stop, "WITHSCORES"))
+
+    await this._updExp("read")
+
+    return v
   }
 
   private parseRangeData(data: string[]) {

@@ -8,7 +8,7 @@ describe("RedisSortedSet", () => {
   const rss = new RedisSortedSet({
     redis,
     key,
-    refresh: async () => 1
+    expire: ["inWrite", 86400 * 7]
   })
 
   beforeEach(async () => {
@@ -31,7 +31,7 @@ describe("RedisSortedSet", () => {
   it("zmscore", async () => {
     await redis.zadd(key, 1, "mb1", 2, "mb2")
 
-    assert.deepStrictEqual(await rss.zmscore(["mb1", "mb2", "mb3"]), [1, 2, 1]) // mb3没设，但通过refresh获取到了1
+    assert.deepStrictEqual(await rss.zmscore(["mb1", "mb2", "mb3"]), [1, 2, 0])
     assert.deepStrictEqual(await rss.zmscore([]), [])
   })
 
@@ -61,14 +61,5 @@ describe("RedisSortedSet", () => {
 
     assert.strictEqual(await rss.zrevrank("mb1"), 1)
     assert.strictEqual(await rss.zrevrank("mb2"), 0)
-  })
-
-  it("没有配置refresh函数", async () => {
-    const rssNoRefresh = new RedisSortedSet({
-      redis,
-      key: "test"
-    })
-    assert.deepStrictEqual(await rssNoRefresh.zmscore(["mb1"]), [0]) // score默认0
-    assert.strictEqual(await rssNoRefresh.zincrby("mb1", 1), 1)
   })
 })
