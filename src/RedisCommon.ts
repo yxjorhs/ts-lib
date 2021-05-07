@@ -11,9 +11,17 @@ declare namespace RedisCommon {
   }
 }
 class RedisCommon {
-  protected readonly defaultExpireIn = 86400 * 7
+  /** 缓存无操作时的过期时间 */
+  protected readonly expireIn = 86400 * 7
 
-  constructor(public readonly options: RedisCommon.Options) {}
+  /** 上次设置key过期的时间 */
+  protected lastSetExpireAt = 0
+
+  constructor(public readonly options: RedisCommon.Options) {
+    if (this.options.expireIn) {
+      this.expireIn = this.options.expireIn
+    }
+  }
 
   protected parseExec(data: [Error | null, any][]): any[] {
     const ret: any[] = []
@@ -34,6 +42,12 @@ class RedisCommon {
    */
   public async del() {
     await this.options.redis.del(this.options.key)
+    this.lastSetExpireAt = 0
+  }
+
+  /** 是否需要更新过期时间 */
+  protected needSetExpire() {
+    return (Date.now() - this.lastSetExpireAt) > (this.expireIn / 2)
   }
 
   /**
@@ -43,10 +57,19 @@ class RedisCommon {
    * 返回指令结果
    */
   protected async runCommands(func: (ppl: Pipeline) => Pipeline): Promise<any[]> {
-    const exec = await func(this.options.redis.pipeline())
-      .expire(this.options.key, this.options.expireIn || this.defaultExpireIn)
-      .exec()
-    return this.parseExec(exec).slice(0, -1)
+    const ppl = func(this.options.redis.pipeline())
+
+    const needSetExpire = this.needSetExpire()
+
+    if (needSetExpire) ppl.expire(this.options.key, this.expireIn);
+
+    const exec = await ppl.exec()
+
+    const ret = this.parseExec(exec)
+
+    if (needSetExpire) return ret.slice(0, -1)
+
+    return ret
   }
 
   /**
