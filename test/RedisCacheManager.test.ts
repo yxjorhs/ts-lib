@@ -39,4 +39,26 @@ describe("RedisCacheManager", () => {
     const mget2 = await rcm.mget("a", ["b", ["1", "2"]])
     assert.deepStrictEqual(mget2, mget)
   })
+
+  it("refresh", async () => {
+    let val = 1
+    const rcmTestRefresh = new RedisCacheManager({
+      redis,
+      keyPrefix: "rcmTestRefresh",
+      cache: {
+        a: {
+          r: async () => val++,
+          re: ["a"]
+        }
+      }
+    })
+
+    assert.strictEqual(await rcmTestRefresh.get("a"), 1)
+    assert.strictEqual(await rcmTestRefresh.get("a"), 1)
+
+    await rcmTestRefresh.refresh("a")
+
+    assert.strictEqual(await rcmTestRefresh.get("a"), 2)
+    assert.strictEqual(await rcmTestRefresh.get("a"), 2)
+  })
 })
