@@ -33,8 +33,20 @@ class RedisDataBase extends RedisHelper {
    * 删除
    */
   public async del() {
-    await this.options.redis.del(this.options.key)
+    await this.redis.del(this.key)
     this.lasUpdExpAt = 0
+  }
+
+  protected pipline() {
+    return this.redis.pipeline()
+  }
+
+  protected get redis() {
+    return this.options.redis
+  }
+
+  protected get key() {
+    return this.options.key
   }
 
   /** 更新key的过期时间 */
@@ -42,11 +54,11 @@ class RedisDataBase extends RedisHelper {
     const [mode, val] = this.options.expire
 
     if (mode === "at" && act === "write") {
-      await this.options.redis.pexpireat(this.options.key, val)
+      await this.redis.pexpireat(this.key, val)
     }
 
     if (mode === "inWrite" && act === "write") {
-      await this.options.redis.expire(this.options.key, val)
+      await this.redis.expire(this.key, val)
     }
 
     if(
@@ -54,39 +66,11 @@ class RedisDataBase extends RedisHelper {
       act === "read" &&
       (Date.now() - this.lasUpdExpAt) > (val / 2) // 减少设置过期时间的频率
       ) {
-      await this.options.redis.expire(this.options.key, val)
+      await this.redis.expire(this.key, val)
     }
 
     this.lasUpdExpAt = Date.now()
   }
-
-  /**
-   * 使用管道执行指令
-   * 设置过期时间
-   * 检测执行异常
-   * 返回指令结果
-   */
-  // protected async runCommands(func: (ppl: Pipeline) => Pipeline): Promise<any[]> {
-  //   const ppl = func(this.options.redis.pipeline())
-
-  //   const needSetExpire = this.needSetExpire()
-
-  //   if (needSetExpire) ppl.expire(this.options.key, this.expireIn);
-
-  //   const ret = await this._exec(ppl)
-
-  //   if (needSetExpire) return ret.slice(0, -1)
-
-  //   return ret
-  // }
-
-  /**
-   * 与runCommands相同，但只返回一个结果
-   */
-  // protected async runCommand(func: (ppl: Pipeline) => Pipeline): Promise<any> {
-  //   const ret = await this.runCommands(func)
-  //   return ret[0]
-  // }
 }
 
 export default RedisDataBase

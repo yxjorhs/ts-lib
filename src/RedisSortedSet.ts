@@ -36,13 +36,13 @@ class RedisSortedSet extends RedisDataBase {
 
   private async zrangeHelper(func: "zrange" | "zrevrange", start: number, stop: number, withScores?: true) {
 
-    const ppl = this.options.redis.pipeline()
+    const ppl = this.redis.pipeline()
 
 
     if (!withScores) {
-      ppl[func](this.options.key, start, stop)
+      ppl[func](this.key, start, stop)
     } else {
-      ppl[func](this.options.key, start, stop, "WITHSCORES")
+      ppl[func](this.key, start, stop, "WITHSCORES")
     }
 
     const [data] = await this._exec(ppl)
@@ -61,7 +61,7 @@ class RedisSortedSet extends RedisDataBase {
   }
 
   public async zincrby(member: string, incr: number): Promise<number> {
-    const valStr = await this.options.redis.zincrby(this.options.key, incr, member)
+    const valStr = await this.redis.zincrby(this.key, incr, member)
 
     const val = Number(valStr)
 
@@ -81,10 +81,10 @@ class RedisSortedSet extends RedisDataBase {
       return []
     }
 
-    const ppl = this.options.redis.pipeline()
+    const ppl = this.redis.pipeline()
 
     for (const member of members) {
-      ppl.zscore(this.options.key, member)
+      ppl.zscore(this.key, member)
     }
 
     const data = await this._exec(ppl)
@@ -97,7 +97,7 @@ class RedisSortedSet extends RedisDataBase {
   }
 
   public async zrank(member: string): Promise<number | null> {
-    const v = await this.options.redis.zrank(this.options.key, member)
+    const v = await this.redis.zrank(this.key, member)
 
     await this._updExp("read")
 
@@ -105,7 +105,7 @@ class RedisSortedSet extends RedisDataBase {
   }
 
   public async zrevrank(member: string): Promise<number | null> {
-    const v = await this.options.redis.zrevrank(this.options.key, member)
+    const v = await this.redis.zrevrank(this.key, member)
 
     await this._updExp("read")
 

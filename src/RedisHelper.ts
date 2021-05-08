@@ -2,8 +2,8 @@ import * as assert from "assert"
 import { Pipeline } from "ioredis"
 
 class RedisHelper {
-  protected async _exec(ppl: Pipeline): Promise<any[]> {
-    const data = await ppl.exec()
+  protected async _exec(pip: Pipeline): Promise<any[]> {
+    const data = await pip.exec()
 
     const ret: any[] = []
 

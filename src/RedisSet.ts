@@ -2,7 +2,7 @@ import RedisDataBase from "./RedisDataBase";
 
 class RedisSet extends RedisDataBase {
   public async sadd(...members: string[]): Promise<number> {
-    const v = await this.options.redis.sadd(this.options.key, ...members)
+    const v = await this.redis.sadd(this.key, ...members)
 
     await this._updExp("write")
 
@@ -10,7 +10,7 @@ class RedisSet extends RedisDataBase {
   }
 
   public async scard(): Promise<number> {
-    const v = await this.options.redis.scard(this.options.key)
+    const v = await this.redis.scard(this.key)
 
     await this._updExp("read")
 
@@ -18,7 +18,7 @@ class RedisSet extends RedisDataBase {
   }
 
   public async smembers(): Promise<string[]> {
-    const v = await this.options.redis.smembers(this.options.key)
+    const v = await this.redis.smembers(this.key)
 
     await this._updExp("read")
 

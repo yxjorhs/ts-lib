@@ -7,7 +7,7 @@ class RedisHash extends RedisDataBase {
    * @param field
    */
   public async hget(field: string): Promise<string | null> {
-    const v = await this.options.redis.hget(this.options.key, field)
+    const v = await this.redis.hget(this.key, field)
 
     await this._updExp("read")
 
@@ -15,7 +15,7 @@ class RedisHash extends RedisDataBase {
   }
 
   public async hgetall(): Promise<Record<string, string>> {
-    const v = await this.options.redis.hgetall(this.options.key)
+    const v = await this.redis.hgetall(this.key)
 
     await this._updExp("read")
 
@@ -23,7 +23,7 @@ class RedisHash extends RedisDataBase {
   }
 
   public async hset(field: string, val: string, ...args: string[]) {
-    const v = await this.options.redis.hset(this.options.key, field, val, ...args)
+    const v = await this.redis.hset(this.key, field, val, ...args)
 
     await this._updExp("write")
 
@@ -33,7 +33,7 @@ class RedisHash extends RedisDataBase {
   public async hdel(...fields: string[]) {
     assert(fields.length > 0, "缺少field")
 
-    const v = await this.options.redis.hdel(this.options.key, ...fields.map(fie => fie + ""))
+    const v = await this.redis.hdel(this.key, ...fields.map(fie => fie + ""))
 
     await this._updExp("read")
 
@@ -49,7 +49,7 @@ class RedisHash extends RedisDataBase {
       return []
     }
 
-    const v = await this.options.redis.hmget(this.options.key, ...fields);
+    const v = await this.redis.hmget(this.key, ...fields);
 
     await this._updExp("read")
 
@@ -61,10 +61,10 @@ class RedisHash extends RedisDataBase {
       return []
     }
 
-    const ppl = this.options.redis.pipeline()
+    const ppl = this.redis.pipeline()
 
     for (const { field, incr } of params) {
-      ppl.hincrby(this.options.key, field + "", incr)
+      ppl.hincrby(this.key, field + "", incr)
     }
 
     const incrRes = await this._exec(ppl)

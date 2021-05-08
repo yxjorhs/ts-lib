@@ -31,9 +31,9 @@ class RedisSortedSetMultiScore extends RedisDataBase {
    * @param update 更新参数, set=将score修改为指定值，incr将score自增指定值
    */
   public async update(member: string, scores: ({ set: number } | { incr: number })[]) {
-    const lock = await new Redlock([this.options.redis]).lock(this.options.key + "update:" + member + ":lock", 300)
+    const lock = await new Redlock([this.redis]).lock(this.key + "update:" + member + ":lock", 300)
 
-    const oldScore = await this.options.redis.zscore(this.options.key, member)
+    const oldScore = await this.redis.zscore(this.key, member)
 
     const oldScores = this.parseScore(oldScore)
 
@@ -51,7 +51,7 @@ class RedisSortedSetMultiScore extends RedisDataBase {
 
     const newScore = this.toScore(newScores)
 
-    await this.options.redis.zadd(this.options.key, newScore, member)
+    await this.redis.zadd(this.key, newScore, member)
 
     await this._updExp("read")
 
@@ -63,7 +63,7 @@ class RedisSortedSetMultiScore extends RedisDataBase {
    * @param member
    */
   public async score(member: string): Promise<number[]> {
-    const v = this.parseScore(await this.options.redis.zscore(this.options.key, member))
+    const v = this.parseScore(await this.redis.zscore(this.key, member))
 
     await this._updExp("read")
 
@@ -75,7 +75,7 @@ class RedisSortedSetMultiScore extends RedisDataBase {
    * @param member
    */
   public async rank(member: string): Promise<number | null> {
-    const v = await this.options.redis.zrank(this.options.key, member)
+    const v = await this.redis.zrank(this.key, member)
 
     await this._updExp("read")
 
@@ -87,7 +87,7 @@ class RedisSortedSetMultiScore extends RedisDataBase {
    * @param member
    */
   public async revrank(member: string): Promise<number | null> {
-    const v = await this.options.redis.zrevrank(this.options.key, member)
+    const v = await this.redis.zrevrank(this.key, member)
 
     await this._updExp("read")
 
@@ -100,7 +100,7 @@ class RedisSortedSetMultiScore extends RedisDataBase {
    * @param stop
    */
   public async range(start: number, stop: number): Promise<{ member: string, scores: number[] }[]> {
-    const v = this.parseRangeData(await this.options.redis.zrange(this.options.key, start, stop, "WITHSCORES"))
+    const v = this.parseRangeData(await this.redis.zrange(this.key, start, stop, "WITHSCORES"))
 
     await this._updExp("read")
 
@@ -111,7 +111,7 @@ class RedisSortedSetMultiScore extends RedisDataBase {
    * 按score递减列出
    */
   public async revrange(start: number, stop: number): Promise<{ member: string, scores: number[] }[]> {
-    const v = this.parseRangeData(await this.options.redis.zrevrange(this.options.key, start, stop, "WITHSCORES"))
+    const v = this.parseRangeData(await this.redis.zrevrange(this.key, start, stop, "WITHSCORES"))
 
     await this._updExp("read")
 

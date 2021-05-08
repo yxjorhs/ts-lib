@@ -1,3 +1,10 @@
+/**
+ * RedisCacheManager redis缓存管理者 以下缩写为rcm
+ *
+ * 目的:
+ * 1. 通过mget一次获取在同个hash或多个hash内的数据
+ * 2. 缓存配置时绑定刷新事件，数据修改时通过向rcm发送事件, 刷新事件绑定的缓存
+ */
 import * as assert from "assert"
 import { Redis } from "ioredis";
 import RedisHelper from "./RedisHelper";
@@ -20,9 +27,7 @@ type _Option<T extends Record<string, unknown>> = {
 }
 
 /**
- * redis缓存管理者
- * 1.管理多个缓存, 无需field即可刷新的函数共用一个hash表保存，需要field刷新的函数单独启用一个hash表
- * 2.通过事件刷新缓存
+ * RedisCacheManager
  */
 class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
   private readonly expireIn = 86400 * 7
@@ -43,19 +48,19 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
 
   public async get<Name extends keyof T>(name: Name, fields?: string[]): Promise<T[Name] | Record<string, T[Name]>> {
     const ret = fields === undefined
-      ? await this.getFromCommonHash(name)
-      : await this.getFromNameHash(name, fields)
+      ? await this.comHashGet(name)
+      : await this.nameHashGet(name, fields)
 
     if (this.needSetExpire(name)) await this.setExpire(name)
 
     return ret
   }
 
-  /** 从共用hash获取缓存 */
-  private async getFromCommonHash<Name extends keyof T>(name: Name): Promise<T[Name]> {
+  /** 从共用hash获取${name}缓存 */
+  private async comHashGet<Name extends keyof T>(name: Name): Promise<T[Name]> {
     assert(this.isNameNeedField(name) === false, `name[${name}]需要field`)
 
-    const key = this.commonHashKey()
+    const key = this.comHashKey()
     const field = name as string
 
     const cacheVal = await this.option.redis.hget(key, field)
@@ -63,11 +68,11 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
     // 缓存存在则返回，不存在则刷新
     if (cacheVal) return JSON.parse(cacheVal)
 
-    return this.refreshCommonHash(name)
+    return this.comHashRefresh(name)
   }
 
-  /** 从私有hash获取缓存, 配置中刷新函数带field的cache会单独是有一个hash */
-  private async getFromNameHash<Name extends keyof T>(name: Name, fields: string[]): Promise<Record<string, T[Name]>> {
+  /** 从{name}对应hash获取${fields}对应的缓存, 配置中刷新函数带field的cache会单独是有一个hash */
+  private async nameHashGet<Name extends keyof T>(name: Name, fields: string[]): Promise<Record<string, T[Name]>> {
     assert(this.isNameNeedField(name) === true, `name[${name}]不需要field`)
     assert(fields.length > 0, `fields不能为空数组`)
 
@@ -87,7 +92,7 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
         continue
       }
 
-      ret[field] = await this.refreshNameHash(name, field)
+      ret[field] = await this.nameHashRefresh(name, field)
     }
 
     return ret
@@ -122,7 +127,7 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
       }
 
       assert(this.isNameNeedField(n) === false, `name[${n}]需要field`)
-      ppl.hget(this.commonHashKey(), n as string)
+      ppl.hget(this.comHashKey(), n as string)
       if (this.needSetExpire(n)) needUpdateExpireNames.push(n)
     }
 
@@ -149,7 +154,7 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
             continue
           }
 
-          v2[field] = await this.refreshNameHash(n[0], field) as any
+          v2[field] = await this.nameHashRefresh(n[0], field) as any
         }
 
         ret[n[0]] = [null as any, v2]
@@ -158,7 +163,7 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
       }
 
       // 共用hash的数据
-      const val = cac !== null ? JSON.parse(cac) : await this.refreshCommonHash(n)
+      const val = cac !== null ? JSON.parse(cac) : await this.comHashRefresh(n)
       ret[n] = [val, null as any]
     }
 
@@ -166,7 +171,28 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
   }
 
   /** 更新{ev}对应的缓存，带field的缓存可更新指定的{field} */
-  // public async refresh(ev: string, field?: string) {}
+  public async refresh(ev: string, field?: string) {
+    for (const name in this.option.cache) {
+      if (this.option.cache[name] === undefined) continue
+
+      const { re } = this.option.cache[name]
+
+      if (re === undefined) continue
+
+      if (re.includes(ev) === false) continue
+
+      if (this.isNameNeedField(name)) {
+        if (field) {
+          await this.nameHashRefresh(name, field)
+        } else {
+          await this.nameHashDel(name)
+        }
+      } else {
+        await this.comHashRefresh(name)
+      }
+
+    }
+  }
 
   /** 字典: 各个hash最近一次'更新过期时间'的时间 */
   private hashExpireTimeDict: Record<string, number> = {}
@@ -191,7 +217,7 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
 
     for (const name of names) {
       const key = this.isNameNeedField(name)
-        ? this.commonHashKey()
+        ? this.comHashKey()
         : this.nameHashKey(name)
 
       if (haveSet[key]) continue
@@ -207,7 +233,7 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
   }
 
   /** 返回共用hash的key */
-  private commonHashKey() {
+  private comHashKey() {
     return `${this.option.keyPrefix}${this.commonHashName}`
   }
 
@@ -231,21 +257,26 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
   }
 
   /** 刷新并返回共用hash的{name}字段数据 */
-  private async refreshCommonHash<Name extends keyof T>(name: Name): Promise<T[Name]> {
+  private async comHashRefresh<Name extends keyof T>(name: Name): Promise<T[Name]> {
     // 不存在则从r函数获取并保存到redis
     const val = await (this.getCacheConfig(name).r as any)()
-    await this.option.redis.hset(this.commonHashKey(), name as string, JSON.stringify(val))
+    await this.option.redis.hset(this.comHashKey(), name as string, JSON.stringify(val))
 
     return val
   }
 
   /** 刷新并返回共用${name}对应的hash的{field}字段数据 */
-  private async refreshNameHash<Name extends keyof T>(name: Name, field: string) {
+  private async nameHashRefresh<Name extends keyof T>(name: Name, field: string) {
     const val = await this.getCacheConfig(name).r(field)
 
     await this.option.redis.hset(this.nameHashKey(name), field, JSON.stringify(val))
 
     return val
+  }
+
+  /** 删除${name}对应的hash */
+  private async nameHashDel<Name extends keyof T>(name: Name) {
+    await this.option.redis.del(this.nameHashKey(name))
   }
 }
 

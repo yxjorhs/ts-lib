@@ -14,12 +14,12 @@ class RedisList extends RedisDataBase {
   }
 
   public async lpush(value: string): Promise<number> {
-    const ppl = this.options.redis.pipeline()
+    const ppl = this.redis.pipeline()
 
-    ppl.lpush(this.options.key, value)
+    ppl.lpush(this.key, value)
 
     if (this.options.maxLen !== undefined && this.options.maxLen >= 1) {
-      ppl.ltrim(this.options.key, 0, this.options.maxLen - 1)
+      ppl.ltrim(this.key, 0, this.options.maxLen - 1)
     }
 
     const [len] = await this._exec(ppl)
@@ -30,7 +30,7 @@ class RedisList extends RedisDataBase {
   }
 
   public async lrange(start: number, stop: number): Promise<string[]> {
-    const v = await this.options.redis.lrange(this.options.key, start, stop)
+    const v = await this.redis.lrange(this.key, start, stop)
 
     await this._updExp("read")
 
