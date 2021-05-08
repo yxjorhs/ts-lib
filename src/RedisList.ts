@@ -21,7 +21,7 @@ class RedisList extends RedisDataBase {
     if (this.options.maxLen !== undefined && this.options.maxLen >= 1) {
       ppl.ltrim(this.options.key, 0, this.options.maxLen - 1)
     }
-  
+
     const [len] = await this._exec(ppl)
 
     await this._updExp("write")

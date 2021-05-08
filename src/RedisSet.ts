@@ -13,7 +13,7 @@ class RedisSet extends RedisDataBase {
     const v = await this.options.redis.scard(this.options.key)
 
     await this._updExp("read")
-    
+
     return v
   }
 
@@ -21,7 +21,7 @@ class RedisSet extends RedisDataBase {
     const v = await this.options.redis.smembers(this.options.key)
 
     await this._updExp("read")
-    
+
     return v
   }
 }

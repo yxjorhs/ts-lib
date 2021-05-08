@@ -10,13 +10,13 @@ describe("array", () => {
     assert.deepStrictEqual(ytl.array.random([], () => 1), null)
   })
 
-  it("toObject", () => {
+  it("toOb", () => {
     assert.deepStrictEqual(
-      ytl.array.toObject([{ key: "k1", val: "v1" }, { key: "k2", val: "v2" }], "key", v => v.val ),
+      ytl.array.toObj([{ key: "k1", val: "v1" }, { key: "k2", val: "v2" }], v => v.key, v => v.val ),
       { k1: "v1", k2: "v2" }
     )
     assert.deepStrictEqual(
-      ytl.array.toObject([{ key: "k1", val: "v1" }, { key: "k2", val: "v2" }], "key"),
+      ytl.array.toObj([{ key: "k1", val: "v1" }, { key: "k2", val: "v2" }], v => v.key, v => v),
       { k1: { key: "k1", val: "v1" }, k2: { key: "k2", val: "v2" }}
     )
   })

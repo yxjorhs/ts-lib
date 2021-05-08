@@ -66,7 +66,7 @@ class RedisSortedSetMultiScore extends RedisDataBase {
     const v = this.parseScore(await this.options.redis.zscore(this.options.key, member))
 
     await this._updExp("read")
-    
+
     return v
   }
 
@@ -76,9 +76,9 @@ class RedisSortedSetMultiScore extends RedisDataBase {
    */
   public async rank(member: string): Promise<number | null> {
     const v = await this.options.redis.zrank(this.options.key, member)
-    
+
     await this._updExp("read")
-    
+
     return v
   }
 

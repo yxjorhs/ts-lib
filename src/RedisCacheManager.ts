@@ -47,7 +47,7 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
       : await this.getFromNameHash(name, fields)
 
     if (this.needSetExpire(name)) await this.setExpire(name)
-      
+
     return ret
   }
 
@@ -72,9 +72,9 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
     assert(fields.length > 0, `fields不能为空数组`)
 
     const ret: Record<string, T[Name]> = {}
-    
+
     const key = this.nameHashKey(name)
-    
+
     const cache = await this.option.redis.hmget(key, ...fields)
 
     for (let i = 0; i < fields.length; i++) {
@@ -86,7 +86,7 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
         ret[field] = JSON.parse(str)
         continue
       }
-      
+
       ret[field] = await this.refreshNameHash(name, field)
     }
 
@@ -140,15 +140,15 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
       if (n instanceof Array) {
         const v2: Record<string, T[Name]> = {}
 
-        for (let i = 0; i < n[1].length; i++) {
-          const field = n[1][i]
-          const str = cac[i]
+        for (let j = 0; j < n[1].length; j++) {
+          const field = n[1][j]
+          const str = cac[j]
 
           if (str) {
             v2[field] = JSON.parse(str)
             continue
           }
-          
+
           v2[field] = await this.refreshNameHash(n[0], field) as any
         }
 
@@ -166,7 +166,7 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
   }
 
   /** 更新{ev}对应的缓存，带field的缓存可更新指定的{field} */
-  public async refresh(ev: string, field?: string) {}
+  // public async refresh(ev: string, field?: string) {}
 
   /** 字典: 各个hash最近一次'更新过期时间'的时间 */
   private hashExpireTimeDict: Record<string, number> = {}
@@ -174,11 +174,11 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
   /** 判断{name}对应的hash是否需要更新过期时间 */
   private needSetExpire<Name extends keyof T>(name: Name): boolean {
     const str = this.isNameNeedField(name) ? name as string : this.commonHashName
-    
+
     const lastSetAt = this.hashExpireTimeDict[str] || 0
 
     // 当前距离上次设置时间超过expireIn的75%时需要更新缓存有效时间
-    return (Date.now() - lastSetAt) > (this.expireIn * 0.75) 
+    return (Date.now() - lastSetAt) > (this.expireIn * 0.75)
   }
 
   /** 更新{names}对应的hash的过期时间 */
@@ -197,7 +197,7 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
       if (haveSet[key]) continue
 
       haveSet[key] = true
-      
+
       ppl.expire(key, this.expireIn)
 
       this.hashExpireTimeDict[key] = Date.now()
@@ -241,7 +241,7 @@ class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
 
   /** 刷新并返回共用${name}对应的hash的{field}字段数据 */
   private async refreshNameHash<Name extends keyof T>(name: Name, field: string) {
-    const val = await this.getCacheConfig(name).r(field) 
+    const val = await this.getCacheConfig(name).r(field)
 
     await this.option.redis.hset(this.nameHashKey(name), field, JSON.stringify(val))
 

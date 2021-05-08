@@ -108,7 +108,7 @@ class RedisSortedSet extends RedisDataBase {
     const v = await this.options.redis.zrevrank(this.options.key, member)
 
     await this._updExp("read")
-    
+
     return v
   }
 }

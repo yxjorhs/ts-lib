@@ -26,14 +26,14 @@ class RedisHash extends RedisDataBase {
     const v = await this.options.redis.hset(this.options.key, field, val, ...args)
 
     await this._updExp("write")
-    
+
     return v
   }
 
   public async hdel(...fields: string[]) {
     assert(fields.length > 0, "缺少field")
 
-    const v = await this.options.redis.hdel(this.options.key, ...fields.map(v => v + ""))
+    const v = await this.options.redis.hdel(this.options.key, ...fields.map(fie => fie + ""))
 
     await this._updExp("read")
 
@@ -52,7 +52,7 @@ class RedisHash extends RedisDataBase {
     const v = await this.options.redis.hmget(this.options.key, ...fields);
 
     await this._updExp("read")
-    
+
     return v
   }
 

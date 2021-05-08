@@ -26,21 +26,20 @@ export function random<T>(arr: T[], rateBy: (v: T) => number) {
 }
 
 /**
- * TODO 优化输出输出值的类型提示
  * 数组转对象
  * @param arr 数组
  * @param key 用于做对象索引的键
  * @param valueBuildFunc 对象值的生成规则
  */
-export function toObject<T extends Record<string, any>>(
+export function toObj<T, T2 extends (string | number), T3>(
   arr: T[],
-  key: string,
-  valueBuildFunc?: (data: T) => any
+  key: (data: T) => T2,
+  value: (data: T) => T3
 ) {
-  const res: Record<string, Record<string, T> | any> = {}
+  const res: Record<T2, T3> = {} as any
 
   for (const item of arr) {
-    res[item[key]] = valueBuildFunc ? valueBuildFunc(item) : item
+    res[key(item)] = value(item)
   }
 
   return res
