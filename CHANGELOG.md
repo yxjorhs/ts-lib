@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.1](https://github.com/yxjorhs/ts-lib/compare/v1.3.2...v2.0.1) (2021-05-21)
+
+
+### Bug Fixes
+
+* redisHashAutRef rm refresh at incr ([1f914b1](https://github.com/yxjorhs/ts-lib/commit/1f914b1fd3a4b9f1573b55c810f1301c935091ef))
+
 ### [1.3.2](https://github.com/yxjorhs/ts-lib/compare/v1.3.1...v1.3.2) (2021-04-14)
 
 ### [1.3.1](https://github.com/yxjorhs/ts-lib/compare/v1.2.3...v1.3.1) (2021-04-14)
