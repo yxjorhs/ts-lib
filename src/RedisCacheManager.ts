@@ -14,7 +14,7 @@ type _Option<T extends Record<string, unknown>> = {
   redis: Redis,
   /** key前缀 */
   keyPrefix: string,
-  expireIn?: number
+  expireIn: number
   /** 被管理的缓存 */
   cache: {
     [name in keyof T]: {
@@ -30,15 +30,14 @@ type _Option<T extends Record<string, unknown>> = {
  * RedisCacheManager
  */
 class RedisCacheManager<T extends Record<string, unknown>> extends RedisHelper{
-  private readonly expireIn = 86400 * 7
   private readonly commonHashName = "common"
 
   constructor(private readonly option: _Option<T>) {
     super();
+  }
 
-    if (this.option.expireIn) {
-      this.expireIn = this.option.expireIn
-    }
+  private get expireIn() {
+    return this.option.expireIn
   }
 
   /** 获取缓存 */
