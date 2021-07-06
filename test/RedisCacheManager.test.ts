@@ -7,6 +7,7 @@ describe("RedisCacheManager", () => {
   const rcm = new RedisCacheManager({
     redis,
     keyPrefix: "rcmtest",
+    expireIn: 3600,
     cache: {
       a: {
         r: async () => 1,
@@ -44,6 +45,7 @@ describe("RedisCacheManager", () => {
     let val = 1
     const rcmTestRefresh = new RedisCacheManager({
       redis,
+      expireIn: 3600,
       keyPrefix: "rcmTestRefresh",
       cache: {
         a: {
