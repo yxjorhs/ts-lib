@@ -56,6 +56,7 @@ class RedisHash extends RedisDataBase {
     return v
   }
 
+  /** 以管道的方式对多个member执行hincrby */
   public async hmincrby(params: { field: string, incr: number }[]) {
     if (params.length === 0) {
       return []

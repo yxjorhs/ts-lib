@@ -1,3 +1,11 @@
+/**
+ * ioredis各种数据结构封装的爸爸
+ *
+ * 目的:
+ * 1.使用key创建指定数据类型的对象，避免对key的错误使用(例如key它是hset，你就没法对这个key使用get)
+ * 2.过期模式，提供了永不过期、指定时间过期、修改后经过n秒过期，读取后经过n秒过期等过期模式，使用时自动根据模式修改过期时间(例如: 给hset数据设了[inWrite, 3600]，那么在数据发生set，incr的时候便会将过期时间重置为3600秒后)
+ */
+
 import { Redis } from "ioredis"
 import RedisHelper from "./RedisHelper"
 
